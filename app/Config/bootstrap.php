@@ -107,3 +107,15 @@ CakeLog::config('error', array(
 	'types' => array('warning', 'error', 'critical', 'alert', 'emergency'),
 	'file' => 'error',
 ));
+
+CakePlugin::load('DebugKit');
+
+
+
+/**
+ * 定数
+ */
+define('CONSUMER_KEY',        'bZbxqwSNX0ZLklcBCXOd4doQo');
+define('CONSUMER_SECRET',     'xEJR44BTWfWuret6HIHxow3cGcwjfyUksf56DTNFGRM1YXCYye');
+define('ACCESS_TOKEN',        '1868721745-9PxesmcO2hpS0AMkHhKA8JZo3s9ozuZ60zpLzF4');
+define('ACCESS_TOKEN_SECRET', 'SEH3QqNqUFjt9Nkh73UlXQKF57QxhNVwD4YJ9nvV4ywKF');
