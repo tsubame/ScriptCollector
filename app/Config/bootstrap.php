@@ -110,7 +110,12 @@ CakeLog::config('error', array(
 
 CakePlugin::load('DebugKit');
 
+require ROOT . '/app/Vendor/autoload.php';
 
+spl_autoload_unregister(array('App', 'load'));
+spl_autoload_register(array('App', 'load'), true, true);
+
+CakePlugin::loadAll();
 
 /**
  * 定数

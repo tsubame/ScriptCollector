@@ -13,7 +13,7 @@ class NicoLiveTest extends CakeTestCase {
  * @var array
  */
 	public $fixtures = array(
-		'app.nico_live'
+		//'app.nico_live'
 	);
 
 /**
@@ -37,4 +37,11 @@ class NicoLiveTest extends CakeTestCase {
 		parent::tearDown();
 	}
 
+	/**
+	 * getStartDates 正常系
+	 */
+	public function testGetStartDates() {
+		echo "hello!";
+	}
+	
 }

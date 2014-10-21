@@ -50,11 +50,13 @@ class NicoLivesSearchAction extends AppModel {
 	 * 
 	 */
 	public function exec() {
-		echo "nico live search model.";
+		//echo "nico live search model.";
 		
 		// ニコニコから検索
 		$html = file_get_contents(self::SEARCH_URL, false);
-		// 2次元配列
+		debug($html);
+		
+		// 2次元配列 $lives[0] = array("title" => "タイトル", "lvID" => "lv0102", "desc" => "説明")
 		$lives = array();
 		// タイトルを取ってくる
 		$titlePtn = "/<a[^>]+https?:\/\/[^>]+lv[^>]+?title.+?([^\"]+)\">([^<]+)<\/a/is";
@@ -65,16 +67,16 @@ class NicoLivesSearchAction extends AppModel {
 		}
 		
 		// 放送IDだけ抜き出す
-		$liveIdPtn = "/https?:\/\/live.nicovideo.jp.searchresult.v=(lv[\d]+)/";
-		preg_match_all($liveIdPtn, $html, $matches, PREG_SET_ORDER);
+		$lvIDPtn = "/https?:\/\/live.nicovideo.jp.searchresult.v=(lv[\d]+)/";
+		preg_match_all($lvIDPtn, $html, $matches, PREG_SET_ORDER);
 		// 過去の放送だけ取り出す
-		$liveIdMatches = array_slice($matches, 0, $live_count * 2);
+		$lvIDMatches = array_slice($matches, 0, $live_count * 2);
 		$j = 0;
-		foreach ($liveIdMatches as $i => $match) {
+		foreach ($lvIDMatches as $i => $match) {
 			if ($i % 2 == 1) {
 				continue;
 			}
-			$lives[$j]["liveId"] = $match[1];
+			$lives[$j]["lvID"] = $match[1];
 			$j++;
 		}		
 		// 説明
@@ -85,7 +87,39 @@ class NicoLivesSearchAction extends AppModel {
 		foreach ($descMatches as $i => $match) {
 			$lives[$i]["desc"] = $match[1];
 		}
+		// 開始日時
+		$ptn = "/<p[^>]+?status[^>]+?>[^\d]+([\d\/]+[^d]+[\d:]+)</is";
+		$match_count = preg_match_all($ptn, $html, $matches, PREG_SET_ORDER);
+		// 過去の放送だけ取り出す
+		$descMatches = array_slice($matches, 0, $live_count);
+		foreach ($descMatches as $i => $match) {
+			$lives[$i]["desc"] = $match[1];
+		}
 		
 		debug($lives);
+	}
+	
+	/**
+	 * 検索結果から開始日時を配列で取り出す
+	 * 
+	 * @param  String $html
+	 * @return $dates
+	 */
+	public function getStartDates($html) {
+		$dates = array();
+		// <p class="status">2014/10/21(火)09:46 開始	(30分)</p>
+		$ptn = "/<p[^>]+?status[^>]+?>[^\d]+([\d\/]+[^d]+[\d:]+)</is";
+		// 抽出
+		preg_match_all($ptn, $html, $matches, PREG_SET_ORDER);
+		// 
+		foreach ($matches as $i => $match) {
+			array_push($dates, $match[1]);
+		}
+		
+		return $dates;
+	}
+	
+	public function sample() {
+		echo "(　ﾟ∀ﾟ)o彡°おっぱい！おっぱい！";
 	}
 }
