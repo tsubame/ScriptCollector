@@ -38,88 +38,161 @@ App::uses('PHPCrawl', 'Vendor/PHPCrawl/libs/');
 class NicoLivesSearchAction extends AppModel {
 	
 	public $useTable = false;
-	/*
-	public $consumer_key = " bZbxqwSNX0ZLklcBCXOd4doQo";
-	public $consumer_secret = "xEJR44BTWfWuret6HIHxow3cGcwjfyUksf56DTNFGRM1YXCYye";
-	public $callback_url = "http://kuroneko.info/sc/callback";
-	*/
+	// 何件検索するか
+	private $searchCount = 80;
+
+	// 1ページ内の検索件数（固定）
+	const SEARCH_COUNT = 40;
+	// ニコニコの検索URL	
+	const SEARCH_URL = "http://live.nicovideo.jp/search?track=&sort=recent&date=&keyword=%E5%A3%B0%E5%8A%87&filter=%3Aclosed%3A&page=";
 	
-	const SEARCH_URL = "http://live.nicovideo.jp/search?orig_filter=+%3Aclosed%3A&sort=recent&date=&keyword=%E5%A3%B0%E5%8A%87";
+	// 検索結果のうち、過去の放送の数
+	private $pastLiveCount = 0;
+	
+	// 2次元配列　検索結果の配列 
+	// $nicoLives = array(
+	// 						array("title" => "タイトル", "lvID" => "lv0102", "desc" => "説明")
+	//					);
+	private $nicoLives = array();
 	
 	/**
 	 * 
 	 */
 	public function exec() {
-		//echo "nico live search model.";
+		// 
+		$accessCount = ceil($this->searchCount / self::SEARCH_COUNT);
 		
-		// ニコニコから検索
-		$html = file_get_contents(self::SEARCH_URL, false);
-		debug($html);
+		for($i = 0; $i < $accessCount; $i++) {
+			$page = $i + 1;
+			$url = self::SEARCH_URL . $page;			
+			// 検索結果のHTMLを取得
+			$html = file_get_contents($url, false);
+			// 放送を取り出す
+			$this->getNicoLives($html);
+		}
+				
+		//debug($html);
+		//debug($this->nicoLives);
 		
-		// 2次元配列 $lives[0] = array("title" => "タイトル", "lvID" => "lv0102", "desc" => "説明")
-		$lives = array();
-		// タイトルを取ってくる
-		$titlePtn = "/<a[^>]+https?:\/\/[^>]+lv[^>]+?title.+?([^\"]+)\">([^<]+)<\/a/is";
+		return $this->nicoLives;
+	}
+	
+	/**
+	 * タイトル、放送ID、説明、日付を抜き出して $this->nicoLivesに入れる
+	 * 過去の放送のみを取り出す。
+	 * 
+	 * @param  String $html
+	 */
+	private function getNicoLives($html) {
+		$titles = $this->getTitles($html);
+		$lvIDs  = $this->getLvIds($html);
+		$descs  = $this->getDescs($html);
+		$dates  = $this->getDates($html);
+
+		for($i = 0; $i < $this->past_live_count; $i++) {
+			if ($this->searchCount <= count($this->nicoLives) ) {
+				break;
+			}
+			$live = array();
+			$live["title"] = $titles[$i];
+			$live["lvID"]  = $lvIDs[$i];
+			$live["desc"]  = $descs[$i];
+			$live["date"]  = $dates[$i];
+			
+			array_push($this->nicoLives, $live);
+		}
+	}
+	
+	/**
+	 * 検索結果から放送タイトルを配列で取り出す
+	 * これの件数が過去の放送の数
+	 *
+	 * @param  String $html
+	 * @return $titles タイトルの配列 
+	 */
+	public function getTitles($html) {
+		$titles = array();
+		
+		$ptn = "/<a[^>]+https?:\/\/[^>]+lv[^>]+?title.+?([^\"]+)\">([^<]+)<\/a/is";
 		// ヒット件数が過去の放送の数
-		$live_count = preg_match_all($titlePtn, $html, $matches, PREG_SET_ORDER);
+		$this->past_live_count = preg_match_all($ptn, $html, $matches, PREG_SET_ORDER);
 		foreach ($matches as $i => $match) {
-			$lives[$i]["title"] = $match[1];
+			if (isset($match[1])) {
+				array_push($titles, $match[1]);
+			}
+		}
+	
+		return $titles;
+	}
+	
+	/**
+	 * 検索結果から放送ID（lv○○）を配列で取り出す
+	 *
+	 * @param  String $html
+	 * @return $lvIDs IDの配列 "lv192834"
+	 */
+	public function getLvIDs($html) {
+		$lvIDs = array();
+		// 正規表現パターン <p class="search_stream_title">　<a href="http://live.nicovideo.jp/searchresult?v=lv197402897&pp= ...
+		$ptn = "/search_stream_title[^<]+?<[^<]+?https?:\/\/live.nicovideo.jp.searchresult.v=(lv[\d]+)/";
+		// 抽出
+		preg_match_all($ptn, $html, $matches, PREG_SET_ORDER);
+		// lv○○の部分だけ取り出す
+		foreach ($matches as $i => $match) {
+			if (isset($match[1])) {
+				array_push($lvIDs, $match[1]);
+			}
 		}
 		
-		// 放送IDだけ抜き出す
-		$lvIDPtn = "/https?:\/\/live.nicovideo.jp.searchresult.v=(lv[\d]+)/";
-		preg_match_all($lvIDPtn, $html, $matches, PREG_SET_ORDER);
-		// 過去の放送だけ取り出す
-		$lvIDMatches = array_slice($matches, 0, $live_count * 2);
-		$j = 0;
-		foreach ($lvIDMatches as $i => $match) {
-			if ($i % 2 == 1) {
-				continue;
-			}
-			$lives[$j]["lvID"] = $match[1];
-			$j++;
-		}		
-		// 説明
+		return $lvIDs;
+	}
+	
+	/**
+	 * 検索結果から放送の説明を配列で取り出す
+	 *
+	 * @param  String $html
+	 * @return $descs 説明の配列
+	 */
+	public function getDescs($html) {
+		$descs = array();
+		
 		$ptn = "/<span[^>]+search_stream_description[^>]+?>([^<]+?)</is";		
 		$match_count = preg_match_all($ptn, $html, $matches, PREG_SET_ORDER);
-		// 過去の放送だけ取り出す
-		$descMatches = array_slice($matches, 0, $live_count);
-		foreach ($descMatches as $i => $match) {
-			$lives[$i]["desc"] = $match[1];
+		// lv○○の部分だけ取り出す
+		foreach ($matches as $i => $match) {
+			if (isset($match[1])) {
+				array_push($descs, $match[1]);
+			}
 		}
-		// 開始日時
-		$ptn = "/<p[^>]+?status[^>]+?>[^\d]+([\d\/]+[^d]+[\d:]+)</is";
-		$match_count = preg_match_all($ptn, $html, $matches, PREG_SET_ORDER);
-		// 過去の放送だけ取り出す
-		$descMatches = array_slice($matches, 0, $live_count);
-		foreach ($descMatches as $i => $match) {
-			$lives[$i]["desc"] = $match[1];
-		}
-		
-		debug($lives);
+	
+		return $descs;
 	}
 	
 	/**
 	 * 検索結果から開始日時を配列で取り出す
 	 * 
 	 * @param  String $html
-	 * @return $dates
+	 * @return $dates 日付文字列の配列 2014/10/21 09:46:00
 	 */
-	public function getStartDates($html) {
+	public function getDates($html) {
 		$dates = array();
 		// <p class="status">2014/10/21(火)09:46 開始	(30分)</p>
-		$ptn = "/<p[^>]+?status[^>]+?>[^\d]+([\d\/]+[^d]+[\d:]+)</is";
+		$ptn = "/<p.+?status.+?>[^<]+([\d\/]{10}.+?)[\s]開始[^<]+</is";
 		// 抽出
 		preg_match_all($ptn, $html, $matches, PREG_SET_ORDER);
-		// 
+
 		foreach ($matches as $i => $match) {
-			array_push($dates, $match[1]);
+			if (isset($match[1])) {
+				// 日付を 2014/10/21 09:46:00 の形式に変換
+				$dateStr = preg_replace("/\(.+\)/", " ", $match[1]);
+				$dateStr = preg_replace("/\//", "-", $dateStr);
+				$dateStr .= ":00";
+				//$ts = strtotime($dateStr);		
+				array_push($dates, $dateStr);				
+			}
 		}
 		
 		return $dates;
 	}
 	
-	public function sample() {
-		echo "(　ﾟ∀ﾟ)o彡°おっぱい！おっぱい！";
-	}
 }

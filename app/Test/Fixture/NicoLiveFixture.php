@@ -14,7 +14,7 @@ class NicoLiveFixture extends CakeTestFixture {
 		'id' => array('type' => 'integer', 'null' => false, 'length' => 11, 'key' => 'primary'),
 		'title' => array('type' => 'string', 'null' => true),
 		'url' => array('type' => 'string', 'null' => true),
-		'start_date' => array('type' => 'datetime', 'null' => true),
+		'date' => array('type' => 'datetime', 'null' => true),
 		'created' => array('type' => 'datetime', 'null' => false),
 		'modified' => array('type' => 'datetime', 'null' => false),
 		'indexes' => array(
@@ -33,7 +33,7 @@ class NicoLiveFixture extends CakeTestFixture {
 			'id' => 1,
 			'title' => 'Lorem ipsum dolor sit amet',
 			'url' => 'Lorem ipsum dolor sit amet',
-			'start_date' => '2014-10-20 05:22:10',
+			'date' => '2014-10-20 05:22:10',
 			'created' => '2014-10-20 05:22:10',
 			'modified' => '2014-10-20 05:22:10'
 		),

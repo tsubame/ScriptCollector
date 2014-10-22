@@ -43,20 +43,187 @@ class NicoLivesController extends AppController {
 	 *
 	 * @var array
 	 */
-	public $uses = array();
+	public $uses = array("NicoLive");
+	
+	
+	private $playLives     = array();
+	private $recruiteLives = array();
+	private $hasUrlLives   = array();
+	private $nonVoiceDramaLives = array();
+	private $otherLives    = array();
+	
+	private $nonPlayLives  = array();
 	
 	/**
 	 * 
 	 */
 	public function search() {
 		$this->loadModel('NicoLivesSearchAction');
-		$str = $this->NicoLivesSearchAction->exec();
-		
-		
-		//debug($str);
-		var_dump(json_decode($str));
-		//echo "search.";		
+		$nicoLives = $this->NicoLivesSearchAction->exec();
+// カラム名と連想配列のキーを合わせる		
+		// DBに保存
+		foreach($nicoLives as $nicoLive) {
+			$data = array();
+			$data["NicoLive"] = array(
+					"live_id" => $nicoLive["lvID"],
+					"title" => $nicoLive["title"],
+					"short_detail" => $nicoLive["desc"],
+					"date" => $nicoLive["date"]							
+			);
+			// ユニークな列がエラーになった場合用
+			try {
+				$this->NicoLive->save($data);
+				$this->NicoLive->create();
+			} catch (Exception $e) {
+				
+			}
+		}
 	}
+	
+	/**
+	 * 
+	 */
+	public function show() {
+		$results = $this->NicoLive->find("all");
+		$lives = array();
+		foreach ($results as $res) {
+			array_push($lives, $res["NicoLive"]);
+		}
+		
+		$this->classifyLives($lives);
+		
+		$this->set("nicoLives",    $lives);
+		$this->set("playLives",    $this->playLives);
+		$this->set("hasUrlLives",  $this->hasUrlLives);
+		$this->set("recruiteLives", $this->recruiteLives);
+		$this->set("nonVoiceDramaLives", $this->nonVoiceDramaLives);
+		$this->set("otherLives",   $this->otherLives);
+
+		$this->set("nonPlayLives", $this->nonPlayLives);
+	}
+	
+	/**
+	 * 3種類に振り分け
+	 * 上演枠
+	 * 明らかに上演枠ではないもの
+	 * それ以外
+	 */
+	private function classifyLives($lives) {		
+		// 上演枠を取り出す
+		foreach ($lives as $live) {
+			// 明らかに声劇枠ではないものを取り出す
+			if ($this->isNonVoiceDramaLive($live) == true) {
+				array_push($this->nonVoiceDramaLives, $live);
+			// 募集枠を取り出す
+			} elseif ($this->isRecruiteLive($live) == true) {
+				array_push($this->recruiteLives, $live);
+			// 上演枠を取り出す
+			} elseif ($this->isPlayLive($live) == true) {
+				array_push($this->playLives, $live);
+			// URLの書いてある枠を取り出す
+			} elseif ($this->isUrlLive($live) == true) {
+				array_push($this->hasUrlLives, $live);
+			} else {
+				array_push($this->otherLives, $live);
+			}
+		}		
+	}
+	
+	/**
+	 * タイトルに上演とあればtrue
+	 * 
+	 * @param  array $live
+	 * @return bool
+	 */
+	private function isPlayLive($live) {
+		$keywords = array("上演");
+		
+		foreach ($keywords as $word) {
+			if (strpos($live["title"], $word) !== FALSE) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * 募集枠ならtrueを返す
+	 * ・タイトルに"募集"
+	 * @param  array $live
+	 * @return bool
+	 */
+	private function isRecruiteLive($live) {
+		$keywords = array("募集");
+	
+		foreach ($keywords as $word) {
+			if (strpos($live["title"], $word) !== FALSE) {
+				return true;
+			}
+		}
+	
+		return false;
+	}
+	
+	/**
+	 * 詳細にURLがあればtrueを返す
+	 * 
+	 * @param  array $live
+	 * @return bool
+	 */
+	private function isUrlLive($live) {
+		$ptn = "/https?(:\/\/[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#]+)/";
+		if (0 < preg_match($ptn, $live["short_detail"])) {
+			return true;
+		}
+	
+		return false;
+	}
+	
+	/**
+	 * 以下の場合に上演枠以外とみなす
+	 * ・タイトルに"募集"
+	 * @param  array $live
+	 * @return bool
+	 */
+	private function isNonPlayLive($live) {
+		$keywords = array("募集");
+		
+		foreach ($keywords as $word) {
+			if (strpos($live["title"], $word) !== FALSE) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * 声劇枠ではないならtrueを返す
+	 * ・タイトルに"声劇"の文字がない
+	 * ・タイトルに"誘導"の文字がある
+	 * @param  array $live
+	 * @return bool
+	 */
+	private function isNonVoiceDramaLive($live) {
+		// タイトルに"誘導"が入っていればtrueを返す
+		if (strpos($live["title"], "誘導") !== FALSE) {
+			return true;
+		}
+		// タイトルに"声劇"が入っていればfalseを返す
+		if (strpos($live["title"], "声劇") !== FALSE) {
+			return false;
+		}
+
+		/*
+		// 詳細に"声劇"が入っていればfalseを返す
+		if (strpos($live["short_detail"], "声劇") !== FALSE) {
+			return false;
+		}*/
+	
+		return true;
+	}
+
 	
 	/**
 	 *
