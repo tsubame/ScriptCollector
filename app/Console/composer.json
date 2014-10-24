@@ -6,9 +6,13 @@
             "url": "http://pear.cakephp.org"
         }
     ],
+    "require": {
+        "mpyw/twistoauth": "@dev"
+    },
     "require-dev": {
         "cakephp/debug_kit": "2.2.*",
-        "phpunit/phpunit": "3.7.*"     },
+        "phpunit/phpunit": "3.7.*"     
+    },
     "extra": {
         "installer-paths":
         {
