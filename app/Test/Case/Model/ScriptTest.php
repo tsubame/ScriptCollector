@@ -45,6 +45,8 @@ class ScriptTest extends CakeTestCase {
 	 */
 	public function isSequelTitle() {
 		$seqTitles   = array(
+				"メタモルフォーゼ　序章（その２）",
+				"大気感戦ウェイブリンクス 最終話",
 				"平安声劇草子、第一章　後編",
 				"不散の椿　二章　合縁奇縁　二話　北の頂上",
 				"ちぇりー☆ぼぉいに愛の手を！ 第１話",
@@ -156,7 +158,9 @@ class ScriptTest extends CakeTestCase {
 				"美女と野獣 1"
 		);
 		$otherTitles = array(
-				//"夢現　第七羽",
+				"カナリアの森 エピローグ",
+				"メタモルフォーゼ　序章（その２）",
+				"夢現　最終話",
 				"平安声劇草子、第二章　前編", 
 				"euforia〜幸せの国〜第一章第六話愛のために",
 				"アンダンテ・クエスト Episode10",

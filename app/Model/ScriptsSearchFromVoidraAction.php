@@ -43,19 +43,19 @@ class ScriptsSearchFromVoidraAction extends AppModel {
 	const SEARCH_URL = "http://gokkoradio.jp/search/cgi-bin/db_kensaku.cgi?table=voice&search=";
 	// ボイドラサーチで1ページに表示される最大件数
 	const MAX_HIT_COUNT_PER_PAGE = 100;
-	
-	// この人数までの台本を検索する
-	const SEARCH_MAX_ACTOR = 5;//6;
+
 	// 最小の台本の人数
-	const SEARCH_MIN_ACTOR = 5;
-	
+	const SEARCH_MIN_ACTOR = 2; //2
+	// この人数までの台本を検索する
+	const SEARCH_MAX_ACTOR = 2; //5;//6;
+
 	// 検索にヒットした件数
 	public $hitCount = null;
 	// 検索中の人数
 	private $searchActorCount = null;
 	
 	/*
-	 * 　台本の配列
+	 * 　台本の配列 データ形式は以下
 	 *   array( 
 	 * 		[0] => array(
 	 * 			"title" 		=> "タイトル",
@@ -66,6 +66,9 @@ class ScriptsSearchFromVoidraAction extends AppModel {
 	 * 			"man_count" 	=> 2,
 	 * 			"woman_count" 	=> 2,
 	 * 			"other_count" 	=> 0
+	 *			"is_ignorable"  => FALSE,
+	 * 			"is_sequel"     => FALSE,
+	 * 			"is_blog"       => FALSE
 	 * 			),
 	 * 		);
 	 */
@@ -77,6 +80,7 @@ class ScriptsSearchFromVoidraAction extends AppModel {
 	public function exec() {
 		// 台本の人数分検索を繰り返す　例：2人〜6人
 		for ($n = self::SEARCH_MIN_ACTOR; $n <= self::SEARCH_MAX_ACTOR; $n++) {
+debug("{$n}人台本を検索...");			
 			$this->searchAllPage($n);				
 		}
 		
@@ -91,8 +95,8 @@ class ScriptsSearchFromVoidraAction extends AppModel {
 	 */
 	public function searchAllPage($actorCount) {
 		$this->searchActorCount = $actorCount;
-		
-		while (1) {
+// 並列に取得できないか？		
+		while (TRUE) {
 			// 検索
 			$this->search($actorCount, count($this->scripts));
 			// 検索件数分を配列に取得できれば終了
@@ -172,6 +176,7 @@ class ScriptsSearchFromVoidraAction extends AppModel {
 		// 正しい形式か？　違ったらエラーを吐く
 		if($this->isRightScriptArray($script) == FALSE) {
 			debug($tds);
+// エラー処理			
 		}
 		
 		return $script;	
@@ -239,9 +244,7 @@ class ScriptsSearchFromVoidraAction extends AppModel {
 			}
 			// タグを削除
 			$td = preg_replace("/<[^>]+?>/is", "", $td);
-			if (0 == strlen($td)) {
-				//continue;
-			}
+
 			array_push($tds, $td);
 		}	
 		
@@ -267,11 +270,14 @@ class ScriptsSearchFromVoidraAction extends AppModel {
 					"man_count" 	=> $this->formatToNumber($tds[7]),
 					"woman_count" 	=> $this->formatToNumber($tds[8]),
 					"other_count" 	=> $this->formatToNumber($tds[9]),
-					"minutes" 		=> $this->formatToNumber($tds[11])
+					"minutes" 		=> $this->formatToNumber($tds[11]),
+					//"is_ignorable"  => 0,
+					//"is_sequel"     => 0,
+					//"is_blog"       => 0
 			);
 		} catch (Exception $e) {
 		}
-		
+//debug($script);		
 		return $script;
 	}
 	
@@ -283,13 +289,5 @@ class ScriptsSearchFromVoidraAction extends AppModel {
 		$num = intval($str);
 
 		return $num;
-	}
-	
-	public function sample() {
-		$word = ">計10人";
-		$word = mb_convert_encoding($word, "Shift_JIS");
-		$url = urlencode($word);
-		//$sjisUrl = mb_convert_encoding($url, "Shift_JIS");
-		//debug($url);
 	}
 }

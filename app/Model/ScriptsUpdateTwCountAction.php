@@ -3,6 +3,7 @@ App::uses('AppModel', 'Model');
 App::uses('TwitterOAuth', 'Vendor/Twitter/');
 App::uses('TwistOAuth', 'Vendor/Twitter/');
 App::uses('HtmlFetcher', 'Lib');
+App::import('Model','Script');
 
 /**
  * 台本のタイトルでツイート検索を行い、テーブルを更新する
@@ -17,8 +18,7 @@ class ScriptsUpdateTwCountAction extends AppModel {
 	private $errorMsgs = array();
 	
 // 一度に更新する件数　外に出す
-	const UPDATE_COUNT_ONCE = 60;
-	
+	const UPDATE_COUNT_ONCE = 90;	
 	// 並列にアクセスする件数
 	const SEARCH_COUNT_ONCE = 20;
 	
@@ -28,33 +28,44 @@ class ScriptsUpdateTwCountAction extends AppModel {
 	/**
 	 * 処理実行
 	 */
-	public function exec() {
-// オリジナル、続き物、ブログ台本は省く
-// 登録時に省くべき？
-		
+	public function exec() {		
 		// 台本を検索　100件程度　modifiedが古い順
-		App::import('Model','Script');
-		$model = new Script();
+		$model   = new Script();
 		$options = array(
-			"order" => array("modified DESC"),
+			"conditions" => array(
+					"is_ignorable = 0",
+					"tw_count = 0"
+			), 
+			"order" => array("modified ASC"),
 			"limit" => self::UPDATE_COUNT_ONCE
 		);
 		$scripts = $model->find("all", $options);
-		
+		// 検索用キーワードの配列作成
 		$words = array();
 		foreach ($scripts as $data) {
 			$title = $data["Script"]["title"];
-			$q = "\"{$title}\"　声劇";
-			array_push($words, $q);
+			$word  = "\"{$title}\"　声劇";
+			array_push($words, $word);
+		}
+		// 検索ワードの配列から検索のヒット件数を取得
+		$hitCounts = $this->getSearchCountParallel($words);
+		
+		foreach ($scripts as $i => &$data) {
+			$data["Script"]["tw_count"] = $hitCounts[$i];
+			$data["Script"]["modified"] = null;
+			debug("{$hitCounts[$i]} => {$data['Script']['title']}");
 		}
 		
-		$counts = $this->getSearchCountParallel($words);
+//debug($scripts);		
 		
-		foreach ($scripts as $i => $data) {
-			debug("{$counts[$i]} => {$data['Script']['title']}");
+		foreach ($scripts as $data) {
+			// データの更新
+			try {
+				$model->save($data);
+			} catch (Exception $e) {
+				//debug($e->getMessage());
+			}
 		}
-		
-		debug($scripts);
 	}
 
 	/**

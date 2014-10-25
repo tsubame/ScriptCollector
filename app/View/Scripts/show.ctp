@@ -36,8 +36,15 @@ foreach($scripts as $script) {
 		<td><h4><a href="<?= $script["url"] ?>" target="_blank"><?= $script["title"] ?></a></h4>
 		</td>
 		<td><h5><?= $script["actor_count"] ?>人</h5></td>
+		<td><h5><?php 
+		 	if (0 < $script["tw_count"] ) {
+		 		?><?= $script["tw_count"] ?>件<?php 
+		 	} else {
+		 		?><?php 
+		 	}
+		 ?></h5></td>
 		<td><h5><?= urldecode($script["url"]) ?></h5></td>
-				<td><h5><?= $script["genre"] ?></h5></td>
+				<!--  <td><h5><?= $script["genre"] ?></h5></td> -->
 </tr>
 <?php 
 }
@@ -62,7 +69,7 @@ foreach($sequelScripts as $script) {
 		 </td><td><h4><a href="<?= $script["url"] ?>" target="_blank"><?= $script["title"] ?></a></h4>
 		</td>
 		<td><?= $script["common_title"] ?>　</td>
-
+		<td><?= $script["genre"] ?>　</td>
 		<td><h5><?= urldecode($script["url"]) ?></h5></td>
 
 		</tr>
