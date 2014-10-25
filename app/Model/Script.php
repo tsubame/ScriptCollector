@@ -10,6 +10,31 @@ class Script extends AppModel {
 	private $sequelWords = array ("第.+(話|章|回|幕)", "[\d]+話", "(前|中|後|序)(編|章)", "プロローグ", "エピローグ", "最終", "[\(（][\d\s]+[\)）]", "[♯#][\d]+",
 				"(その|エピソード|episode|ep|CHAPTER)[\d\s\.]+", "[\d]+[\s　]*$", "[\d一ニ二三四五六七八九十百零千\s]+(話|章)", "(第|その)[一ニ三四五六七八九十百零千\d\s]+");
 		
+	/**
+	 * 台本の人数で検索
+	 * 
+	 * @param  int   検索人数
+	 * @return array $scripts $scriptの配列
+	 */
+	public function findByActorCount($n) {
+		$options = array(
+				"conditions" => array(
+						"actor_count = {$n}",
+						"is_ignorable = 0",
+						"tw_count    != 0"
+						),
+				"order" => array("tw_count DESC")
+		);
+		debug($options);		
+		$results = $this->find("all", $options);
+//debug($results);		
+		$scripts = array();
+		foreach ($results as $data) {
+			array_push($scripts, $data["Script"]);
+		}
+		
+		return $scripts;
+	}
 
 	/**
 	 * 台本取得時に足りない情報を補う
@@ -161,6 +186,27 @@ class Script extends AppModel {
 				return true;
 			}
 		}
+		
+		return false;
+	}
+	
+
+	/**
+	 * 
+	 * @param  unknown $title
+	 * @return boolean
+	 */
+	public function isShortWord($title) {
+		// 文字数が4文字以下ならtrue
+		if (mb_strlen($title) <= 4) {
+			return true;
+		}
+		// 英語の場合一つの単語か？
+		if (preg_match("/^[a-zA-Z]+$/", $title)) {
+			if (strlen($title) <= 8) {
+				return true;
+			}
+		} 
 		
 		return false;
 	}

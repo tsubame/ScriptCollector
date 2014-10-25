@@ -124,3 +124,12 @@ define('CONSUMER_KEY',        'bZbxqwSNX0ZLklcBCXOd4doQo');
 define('CONSUMER_SECRET',     'xEJR44BTWfWuret6HIHxow3cGcwjfyUksf56DTNFGRM1YXCYye');
 define('ACCESS_TOKEN',        '1868721745-9PxesmcO2hpS0AMkHhKA8JZo3s9ozuZ60zpLzF4');
 define('ACCESS_TOKEN_SECRET', 'SEH3QqNqUFjt9Nkh73UlXQKF57QxhNVwD4YJ9nvV4ywKF');
+
+/**
+ * 変更可能な定数
+ */
+// 検索対象の台本の最少人数
+define("MIN_ACOTR_OF_SCRIPT", 2);
+// 検索対象の台本の最少人数
+define("MAX_ACOTR_OF_SCRIPT", 6);
+

@@ -13,7 +13,7 @@ class ScriptTest extends CakeTestCase {
 	 * @var array
 	 */
 	public $fixtures = array(
-		'app.script'
+		//'app.script'
 	);
 
 	/**
@@ -36,8 +36,14 @@ class ScriptTest extends CakeTestCase {
 
 		parent::tearDown();
 	}
-	
-	
+		
+	/**
+	 * @test
+	 */
+	public function findByActorCount() {
+		$scripts = $this->Script->findByActorCount(2);
+		debug($scripts);
+	}
 	
 	/**
 	 * タイトルが続き物台本かどうか
@@ -211,6 +217,40 @@ class ScriptTest extends CakeTestCase {
 				debug("　{$title}は初回です");
 			}
 			$this->assertFalse($res);
+		}
+	}
+	
+	/**
+	 * @test
+	 */
+	public function isShortWord() {
+		$shortTitles   = array(
+				"いぬかぜ",
+				"hello",
+				"symfony",
+				"柘榴果実"
+		);
+		
+		$longTitles   = array(
+				"いぬかぜ2",
+				"hello!!!!!!",
+				"symfony max",
+				"柘榴果実こ"
+		);
+		foreach ($shortTitles as $title) {
+			$res = $this->Script->isShortWord($title);
+			if ($res == FALSE) {
+				debug("　{$title}は短すぎません");
+			}
+			$this->assertTrue($res);
+		}
+		
+		foreach ($longTitles as $title) {
+			$res = $this->Script->isShortWord($title);
+			if ($res == TRUE) {
+				debug("　{$title}は短すぎます");
+			}
+			$this->assertFALSE($res);
 		}
 	}
 }

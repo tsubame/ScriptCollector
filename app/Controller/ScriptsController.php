@@ -8,6 +8,13 @@ App::uses('AppController', 'Controller');
  */
 class ScriptsController extends AppController {
 
+	private $scripts       = array();
+	//private $unuseScripts  = array();
+	//private $blogScripts   = array();
+	//private $sequelScripts = array();
+	private $shortTitleScripts = array();
+	
+	
 	/**
 	 * Components
 	 *
@@ -24,12 +31,40 @@ class ScriptsController extends AppController {
 		$this->Script->recursive = 0;
 		$this->set('scripts', $this->Paginator->paginate());
 	}
+		
+	/**
+	 * 
+	 */
+	public function update() {
+
+		//debug($this->request->data['title']. $this->request->data['id'] . $this->request->data['is_ignorable']);
+		$id = (int) $this->request->data['id'];
+		$bool = (bool)$this->request->data['is_ignorable'];
+		$is_ignorable = 0;
+		
+		if ((int)$this->request->data['is_ignorable'] == 1) {
+			debug("＼(^o^)／ true です");
+			$is_ignorable = 1;
+		} else {
+			debug("＼(^o^)／ false です");
+		}
+		
+		$is_ignorable = $this->request->data['is_ignorable'];
 	
-	private $scripts       = array();
-	private $unuseScripts  = array();
-	private $blogScripts   = array();
-	private $sequelScripts = array();
-	
+		$data["Script"] = array(
+				"id" => $id,
+				"is_ignorable" => $is_ignorable			
+		);
+		
+		// データの更新
+		try {
+			$this->Script->save($data);
+		} catch (Exception $e) {
+			debug($e->getMessage());
+		}
+		
+		$this->render("index");
+	}
 	
 	/**
 	 * 台本のツイート件数を更新
@@ -109,11 +144,16 @@ class ScriptsController extends AppController {
 	private function classifyScripts($scripts) {	
 		foreach ($scripts as $script) {
 			if ($script["is_ignorable"] == TRUE) {
-				array_push($this->unuseScripts, $script);
+				//array_push($this->unuseScripts, $script);
 			} else {
 				array_push($this->scripts, $script);
+				
+				// タイトルが短すぎないか判別
+				if ($this->Script->isShortWord($script["title"]) == TRUE) {
+					array_push($this->shortTitleScripts, $script);
+				}
 			}
-			
+			/*
 			// ブログかどうかを判別
 			if ($this->Script->isBlogURL($script["url"]) == TRUE) {
 				array_push($this->blogScripts, $script);
@@ -123,12 +163,15 @@ class ScriptsController extends AppController {
 				$script["common_title"]    = $this->Script->getCommonTitle($script["title"]);
 				$script["is_first_script"] = $this->Script->isSequelFirstTitle($script["title"]);
 				array_push($this->sequelScripts, $script);
-			}
+			}*/
+			
+		
 		}
 		$this->set("scripts",       $this->scripts);
-		$this->set("unuseScripts",  $this->unuseScripts);
-		$this->set("blogScripts",   $this->blogScripts);
-		$this->set("sequelScripts", $this->sequelScripts);
+		//$this->set("unuseScripts",  $this->unuseScripts);
+		//$this->set("blogScripts",   $this->blogScripts);
+		//$this->set("sequelScripts", $this->sequelScripts);
+		$this->set("shortTitleScripts", $this->shortTitleScripts);
 	}
 	
 }

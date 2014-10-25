@@ -1,26 +1,7 @@
-<?php
-/**
- *
- * PHP 5
- *
- * CakePHP(tm) : Rapid Development Framework (http://cakephp.org)
- * Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
- *
- * Licensed under The MIT License
- * For full copyright and license information, please see the LICENSE.txt
- * Redistributions of files must retain the above copyright notice.
- *
- * @copyright     Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
- * @link          http://cakephp.org CakePHP(tm) Project
- * @package       app.View.Pages
- * @since         CakePHP(tm) v 0.10.0.1076
- * @license       http://www.opensource.org/licenses/mit-license.php MIT License
- */
 
-if (!Configure::read('debug')):
-	throw new NotFoundException();
-endif;
-App::uses('Debugger', 'Utility');
+<?php 
+//echo $this->Html->script( array( 'inline' => false ) );
+echo $this->Html->script(array('jquery-1.11.1.min', 'main'), array('inline'=>false)); 
 ?>
 <br />
 <br />
@@ -29,12 +10,51 @@ App::uses('Debugger', 'Utility');
 <?php 
 debug("台本　" . count($scripts) . "件");
 foreach($scripts as $script) {
-	//$script = $data["Script"];
-	//debug($nicoLives)
+	$word = "\"{$script["title"]}\"　声劇";
+	$searchUrl = "https://twitter.com/search?f=realtime&src=typd&q=" . urlencode($word);
 ?>
-	<tr>
-		<td><h4><a href="<?= $script["url"] ?>" target="_blank"><?= $script["title"] ?></a></h4>
+	<tr id="tr_<?= $script["id"] ?>">
+		<td>
+		<?php if($script["is_ignorable"] == FALSE) { ?>
+			<input type="checkbox" class="updateCheck" id="updateCheck<?= $script["id"] ?>" name="<?= $script["id"] ?>" checked="checked" />
+		<?php } else { ?>
+			<input type="checkbox" class="updateCheck" id="updateCheck<?= $script["id"] ?>" name="<?= $script["id"] ?>" />
+		<?php } ?>
 		</td>
+		<td><h4><a href="<?= $searchUrl ?>" target="_blank" id="title<?= $script["id"] ?>" title="<?= $script["title"] ?>"><?= $script["title"] ?></a></h4></td>
+		<td><h5><?= $script["actor_count"] ?>人</h5></td>
+		<td><h5>♂<?= $script["man_count"] ?>♀<?= $script["woman_count"] ?></h5></td>
+		<td><h5><?php 
+		 	if (0 < $script["tw_count"] ) {
+		 		?><?= $script["tw_count"] ?>件<?php 
+		 	} else {
+		 		?><?php 
+		 	}
+		 ?></h5></td>
+		<td><h5><a href="<?= urldecode($script["url"]) ?>" target="_blank"><?= urldecode($script["url"]) ?></a></h5></td>
+				<!--  <td><h5><?= $script["genre"] ?></h5></td> -->
+</tr>
+<?php 
+}
+?>
+</table>
+
+<table>
+<?php 
+debug("タイトルが短い台本　" . count($shortTitleScripts) . "件");
+foreach($shortTitleScripts as $script) {
+	$word = "\"{$script["title"]}\"　声劇";
+	$searchUrl = "https://twitter.com/search?f=realtime&src=typd&q=" . urlencode($word);
+?>
+	<tr id="short_tr_<?= $script["id"] ?>">
+		<td>
+		<?php if($script["is_ignorable"] == FALSE) { ?>
+			<input type="checkbox" class="updateCheck" name="<?= $script["id"] ?>" checked="checked" />
+		<?php } else { ?>
+			<input type="checkbox" class="updateCheck" name="<?= $script["id"] ?>" />
+		<?php } ?>
+		</td>
+		<td><h4><a href="<?= $searchUrl ?>" target="_blank" title="<?= $script["title"] ?>"><?= $script["title"] ?></a></h4></td>
 		<td><h5><?= $script["actor_count"] ?>人</h5></td>
 		<td><h5><?php 
 		 	if (0 < $script["tw_count"] ) {
@@ -43,14 +63,14 @@ foreach($scripts as $script) {
 		 		?><?php 
 		 	}
 		 ?></h5></td>
-		<td><h5><?= urldecode($script["url"]) ?></h5></td>
+		<td><h5><a href="<?= urldecode($script["url"]) ?>" target="_blank"><?= urldecode($script["url"]) ?></a></h5></td>
 				<!--  <td><h5><?= $script["genre"] ?></h5></td> -->
 </tr>
 <?php 
 }
 ?>
 </table>
-
+<?php /* ?>
 <table>
 <?php 
 debug("続き物台本");
