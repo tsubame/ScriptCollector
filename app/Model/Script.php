@@ -66,10 +66,12 @@ class Script extends AppModel {
 		}
 		
 		// 原作モノか
-		if (strpos($script["genre"], "原作") !== FALSE) {
+		if (strpos($script["org_genre"], "原作") !== FALSE) {
 			$script["is_ignorable"] = 1;
 			//debug($script["title"] . "は原作モノなので無視");
 		}	
+		// ジャンルの振り分け
+		$script["genre"] = $this->getGenreFromOrgGenre($script["org_genre"]);
 		
 		return $script;
 	}
@@ -209,6 +211,29 @@ class Script extends AppModel {
 		} 
 		
 		return false;
+	}
+	
+	/**
+	 * ジャンルの振り分け
+	 */
+	public function getGenreFromOrgGenre($orgGenre) {
+		if (strpos($orgGenre, "コメディ") !== FALSE) {
+			return "コメディ";
+		}		
+		if (strpos($orgGenre, "ラブストーリー") !== FALSE) {
+			return "恋愛";
+		}
+		if (strpos($orgGenre, "18禁")    !== FALSE) {
+			return "R-18";
+		}
+		if (strpos($orgGenre, "BL") !== FALSE) {
+			return "BL";
+		}	
+		if (strpos($orgGenre, "シリアス") !== FALSE) {
+			return "シリアス";
+		}
+		
+		return "シリアス";
 	}
 	
 }

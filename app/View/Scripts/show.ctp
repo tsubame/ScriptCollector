@@ -32,7 +32,7 @@ foreach($scripts as $script) {
 		 	}
 		 ?></h5></td>
 		<td><h5><a href="<?= urldecode($script["url"]) ?>" target="_blank"><?= urldecode($script["url"]) ?></a></h5></td>
-				<!--  <td><h5><?= $script["genre"] ?></h5></td> -->
+		<td><h5><?= $script["genre"] ?></h5></td>
 </tr>
 <?php 
 }

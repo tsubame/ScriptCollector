@@ -266,6 +266,7 @@ debug("{$n}人台本を検索...");
 					"url" 			=> $tds[4],
 					"site_url" 		=> $tds[5],
 					"genre" 		=> $tds[6],
+					"org_genre" 	=> $tds[6],
 					"actor_count" 	=> $this->formatToNumber($tds[10]),
 					"man_count" 	=> $this->formatToNumber($tds[7]),
 					"woman_count" 	=> $this->formatToNumber($tds[8]),

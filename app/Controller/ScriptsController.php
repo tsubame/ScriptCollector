@@ -36,18 +36,13 @@ class ScriptsController extends AppController {
 	 * 
 	 */
 	public function update() {
-
-		//debug($this->request->data['title']. $this->request->data['id'] . $this->request->data['is_ignorable']);
 		$id = (int) $this->request->data['id'];
 		$bool = (bool)$this->request->data['is_ignorable'];
 		$is_ignorable = 0;
 		
 		if ((int)$this->request->data['is_ignorable'] == 1) {
-			debug("＼(^o^)／ true です");
 			$is_ignorable = 1;
-		} else {
-			debug("＼(^o^)／ false です");
-		}
+		} 
 		
 		$is_ignorable = $this->request->data['is_ignorable'];
 	
@@ -152,22 +147,10 @@ class ScriptsController extends AppController {
 				if ($this->Script->isShortWord($script["title"]) == TRUE) {
 					array_push($this->shortTitleScripts, $script);
 				}
-			}
-			/*
-			// ブログかどうかを判別
-			if ($this->Script->isBlogURL($script["url"]) == TRUE) {
-				array_push($this->blogScripts, $script);
-			// 続き物かどうかを判別
-			} 
-			if ($script["is_sequel"] == TRUE) {
-				$script["common_title"]    = $this->Script->getCommonTitle($script["title"]);
-				$script["is_first_script"] = $this->Script->isSequelFirstTitle($script["title"]);
-				array_push($this->sequelScripts, $script);
-			}*/
-			
-		
+			}		
 		}
-		$this->set("scripts",       $this->scripts);
+		
+		$this->set("scripts",           $this->scripts);
 		//$this->set("unuseScripts",  $this->unuseScripts);
 		//$this->set("blogScripts",   $this->blogScripts);
 		//$this->set("sequelScripts", $this->sequelScripts);
